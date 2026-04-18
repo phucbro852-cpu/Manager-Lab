@@ -30,7 +30,7 @@ const Header = () => {
 
   return (
     <header className="header">
-      <div style={{ fontWeight: 500, color: 'var(--text-secondary)' }}>Welcome back!</div>
+      <div style={{ fontWeight: 600, fontSize: '1.1rem' }} className="text-gradient">Welcome back!</div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
         <div style={{ position: 'relative' }}>
           <button 

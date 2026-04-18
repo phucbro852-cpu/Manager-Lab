@@ -112,7 +112,7 @@ const Products = () => {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h2>Laptop Management</h2>
+        <h2 className="text-gradient" style={{ marginBottom: '1.5rem', fontWeight: '700' }}>Laptop Management</h2>
         {user?.role === 'admin' && (
           <button className="btn btn-primary" onClick={openAddForm}>
             + Add Laptop

@@ -95,7 +95,7 @@ const Transactions = () => {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h2>{user?.role === 'admin' ? 'All Transactions' : 'My Transactions'}</h2>
+        <h2 className="text-gradient" style={{ marginBottom: '1.5rem', fontWeight: '700' }}>{user?.role === 'admin' ? 'All Transactions' : 'My Transactions'}</h2>
         {user?.role === 'admin' && (
           <button className="btn btn-outline" onClick={exportCSV} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', borderColor: 'var(--success)', color: 'var(--success)' }}>
             📤 Xuất File CSV

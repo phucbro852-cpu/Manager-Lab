@@ -83,7 +83,7 @@ const Dashboard = () => {
 
   return (
     <div>
-      <h2 style={{ marginBottom: '1.5rem' }}>Dashboard {isAdmin ? '(Admin)' : '(User)'}</h2>
+      <h2 className="text-gradient" style={{ marginBottom: '1.5rem', fontWeight: '700' }}>Dashboard {isAdmin ? '(Admin)' : '(User)'}</h2>
       
       {isAdmin ? (
         <div className="grid-cards" style={{ marginBottom: '2rem' }}>

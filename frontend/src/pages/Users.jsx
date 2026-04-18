@@ -106,7 +106,7 @@ const Users = () => {
 
   return (
     <div>
-      <h2 style={{ marginBottom: '1.5rem' }}>User Management</h2>
+      <h2 className="text-gradient" style={{ marginBottom: '1.5rem', fontWeight: '700' }}>User Management</h2>
       <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap-reverse' }}>
         <div className="card" style={{ flex: '1 1 350px', height: 'fit-content' }}>
           <h3 style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', color: 'var(--text-primary)' }}>
