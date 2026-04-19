@@ -1,0 +1,9 @@
+{
+  "name": "Lab Manager Pro",
+  "short_name": "Lab Manager",
+  "description": "IT Lab Equipment Management System",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#3b82f6"
+}
