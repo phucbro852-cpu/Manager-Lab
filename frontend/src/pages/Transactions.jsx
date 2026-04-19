@@ -23,8 +23,8 @@ const Transactions = () => {
 
   const handleReturn = async (id) => {
     try {
-      await api.post('/transactions/return', { transactionId: id });
-      alert('Returned successfully!');
+      const response = await api.post('/transactions/return', { transactionId: id });
+      alert(response.data.message || 'Thao tác thành công!');
       fetchTransactions();
     } catch (error) {
       alert(error.response?.data?.message || 'Error returning');
@@ -91,6 +91,7 @@ const Transactions = () => {
   const miniStats = {
     borrowing: transactions.filter(t => t.status === 'borrowing').length,
     overdue: transactions.filter(t => t.status === 'overdue').length,
+    pending_return: transactions.filter(t => t.status === 'pending_return').length,
     returned: transactions.filter(t => t.status === 'returned').length
   };
 
@@ -119,6 +120,11 @@ const Transactions = () => {
             </div>
             <div style={{ width: '1px', backgroundColor: 'var(--border-color)' }}></div>
             <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--warning)' }}>{miniStats.pending_return}</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Chờ duyệt</div>
+            </div>
+            <div style={{ width: '1px', backgroundColor: 'var(--border-color)' }}></div>
+            <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--success)' }}>{miniStats.returned}</div>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Đã trả</div>
             </div>
@@ -143,6 +149,7 @@ const Transactions = () => {
             <option value="">Tất cả trạng thái</option>
             <option value="borrowing">Đang mượn (Borrowing)</option>
             <option value="overdue">Quá hạn (Overdue)</option>
+            <option value="pending_return">Chờ duyệt (Pending Return)</option>
             <option value="returned">Đã trả (Returned)</option>
           </select>
         </div>
@@ -178,15 +185,20 @@ const Transactions = () => {
                 <td>{new Date(t.borrowDate).toLocaleString('vi-VN')}</td>
                 <td>{t.returnDate ? new Date(t.returnDate).toLocaleString('vi-VN') : 'N/A'}</td>
                 <td>
-                  <span className={`badge badge-${t.status === 'returned' ? 'success' : t.status === 'overdue' ? 'danger' : 'borrowed'}`}>
-                    {t.status.toUpperCase()}
+                  <span className={`badge badge-${t.status === 'returned' ? 'success' : t.status === 'overdue' ? 'danger' : t.status === 'pending_return' ? 'warning' : 'borrowed'}`}>
+                    {t.status === 'pending_return' ? 'CHỜ DUYỆT TRẢ' : t.status.toUpperCase()}
                   </span>
                 </td>
                 <td>
                   <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    {user?.role === 'admin' && t.status === 'pending_return' && (
+                      <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem', borderColor: 'var(--success)', color: 'var(--success)' }} onClick={() => handleReturn(t._id)}>
+                        ✔ Duyệt Trả
+                      </button>
+                    )}
                     {(t.status === 'borrowing' || t.status === 'overdue') && (
                       <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }} onClick={() => handleReturn(t._id)}>
-                        Return
+                        {user?.role === 'admin' ? 'Thu Hồi' : 'Yêu Cầu Trả'}
                       </button>
                     )}
                     {user?.role === 'admin' && t.status === 'overdue' && (

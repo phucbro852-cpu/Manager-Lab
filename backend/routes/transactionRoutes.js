@@ -72,24 +72,48 @@ router.post('/return', protect, async (req, res) => {
     const transaction = await Transaction.findById(transactionId).populate('productId');
     
     if (!transaction) return res.status(404).json({ message: 'Transaction not found' });
-    if (transaction.status !== 'borrowing' && transaction.status !== 'overdue') {
-      return res.status(400).json({ message: 'Transaction already completed' });
+    if (transaction.status !== 'borrowing' && transaction.status !== 'overdue' && transaction.status !== 'pending_return') {
+      return res.status(400).json({ message: 'Transaction cannot be returned in current status' });
     }
 
-    if (transaction.userId.toString() !== req.user.id && req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Not authorized to return this product' });
+    if (req.user.role === 'admin') {
+      // Admin duyệt trả hoặc thu hồi trực tiếp
+      transaction.status = 'returned';
+      await transaction.save();
+
+      const product = await Product.findById(transaction.productId._id);
+      if (product) {
+        product.status = 'available';
+        await product.save();
+      }
+
+      return res.json({ message: 'Đã xác nhận trả máy thành công', transaction });
+    } else {
+      // User yêu cầu trả máy
+      if (transaction.userId.toString() !== req.user.id) {
+        return res.status(403).json({ message: 'Not authorized to return this product' });
+      }
+      if (transaction.status === 'pending_return') {
+        return res.status(400).json({ message: 'Đã gửi yêu cầu trả máy, đang chờ admin duyệt.' });
+      }
+
+      transaction.status = 'pending_return';
+      await transaction.save();
+      
+      const User = require('../models/User');
+      const Notification = require('../models/Notification');
+      const admins = await User.find({ role: 'admin' });
+      if (admins && admins.length > 0) {
+        const productInfo = await Product.findById(transaction.productId._id);
+        const notifications = admins.map(admin => ({
+          userId: admin._id,
+          message: `🛎️ Yêu cầu duyệt trả máy: User đã gửi yêu cầu trả thiết bị ${productInfo ? productInfo.name : 'Unknown'}. Vui lòng tiếp nhận thiết bị từ sinh viên và Duyệt trả trong mục Transactions!`
+        }));
+        await Notification.insertMany(notifications);
+      }
+
+      return res.json({ message: 'Đã gửi yêu cầu trả máy. Vui lòng chờ Admin duyệt!', transaction });
     }
-
-    transaction.status = 'returned';
-    await transaction.save();
-
-    const product = await Product.findById(transaction.productId._id);
-    if (product) {
-      product.status = 'available';
-      await product.save();
-    }
-
-    res.json(transaction);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

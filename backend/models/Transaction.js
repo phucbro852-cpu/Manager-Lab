@@ -5,7 +5,7 @@ const transactionSchema = new mongoose.Schema({
   productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
   borrowDate: { type: Date, default: Date.now },
   returnDate: { type: Date },
-  status: { type: String, enum: ['borrowing', 'returned', 'overdue'], default: 'borrowing' }
+  status: { type: String, enum: ['borrowing', 'returned', 'overdue', 'pending_return'], default: 'borrowing' }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Transaction', transactionSchema);

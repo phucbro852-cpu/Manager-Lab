@@ -36,7 +36,7 @@ const ProductDetail = () => {
 
       if (user) {
          const transRes = await api.get('/transactions');
-         const activeTransactions = transRes.data.filter(t => t.status === 'borrowing' || t.status === 'overdue');
+         const activeTransactions = transRes.data.filter(t => t.status === 'borrowing' || t.status === 'overdue' || t.status === 'pending_return');
          
          const activeForThisProduct = activeTransactions.find(t => 
              t.productId?._id === data._id || t.productId === data._id
@@ -80,9 +80,9 @@ const ProductDetail = () => {
   const handleReturn = async () => {
      if (!activeTransaction) return;
      try {
-       await api.post('/transactions/return', { transactionId: activeTransaction._id });
-       alert('Trả máy thành công! Cám ơn bạn đã sử dụng.');
-       navigate('/dashboard');
+       const response = await api.post('/transactions/return', { transactionId: activeTransaction._id });
+       alert(response.data?.message || 'Đã yêu cầu trả máy thành công!');
+       fetchProductAndData();
      } catch (error) {
        alert(error.response?.data?.message || 'Lỗi khi trả máy');
      }
@@ -179,10 +179,14 @@ const ProductDetail = () => {
               <p style={{ color: 'var(--text-primary)' }}>
                 Thời gian dự kiến trả: <strong>{new Date(product.activeTransactionReturnDate).toLocaleString('vi-VN')}</strong>
               </p>
-              {activeTransaction && (
+              {activeTransaction && activeTransaction.status === 'pending_return' ? (
+                <div style={{ marginTop: '1rem', padding: '0.6rem', textAlign: 'center', backgroundColor: 'var(--warning-light, rgba(245, 158, 11, 0.1))', border: '1px solid var(--warning)', color: 'var(--warning)', borderRadius: '8px', fontWeight: 600 }}>
+                   ⏳ Đang chờ Admin duyệt trả...
+                </div>
+              ) : activeTransaction && (
                 <div style={{ marginTop: '1rem' }}>
                   <button className="btn" onClick={handleReturn} style={{ width: '100%', padding: '0.6rem', fontSize: '1rem', fontWeight: 600, backgroundColor: 'var(--success)', color: 'white' }}>
-                    ☑️ Xác nhận Trả Máy Của Bạn
+                    ☑️ Yêu Cầu Trả Máy
                   </button>
                 </div>
               )}
