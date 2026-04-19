@@ -38,6 +38,9 @@ router.post('/borrow', protect, async (req, res) => {
         await activeReservation.save();
       } else {
         // If someone else, check overlap
+        if (new Date() >= new Date(activeReservation.reservationDate)) {
+          return res.status(400).json({ message: 'Thiết bị này đang trong thời gian đặt trước của người khác.' });
+        }
         if (new Date(returnDate) > new Date(activeReservation.reservationDate)) {
           return res.status(400).json({ message: `Hạn trả máy không được vượt quá lịch đặt trước (ngày ${new Date(activeReservation.reservationDate).toLocaleString('vi-VN')})` });
         }

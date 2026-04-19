@@ -26,17 +26,25 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [transactions, setTransactions] = useState([]);
+  const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [pRes, tRes] = await Promise.all([
+        const promises = [
           api.get('/products'),
           api.get('/transactions')
-        ]);
-        setProducts(pRes.data);
-        setTransactions(tRes.data);
+        ];
+        if (user) {
+          promises.push(api.get('/reservations/mine'));
+        }
+        const results = await Promise.all(promises);
+        setProducts(results[0].data);
+        setTransactions(results[1].data);
+        if (results[2]) {
+          setReservations(results[2].data);
+        }
       } catch (error) {
         console.error(error);
       } finally {
@@ -44,7 +52,19 @@ const Dashboard = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [user]);
+
+  const handleCancelReservation = async (reservationId) => {
+    if (window.confirm("Bạn có chắc chắn muốn hủy lịch đặt thiết bị này? Hành động này không thể hoàn tác.")) {
+      try {
+        await api.put(`/reservations/${reservationId}/cancel`);
+        setReservations(reservations.filter(r => r._id !== reservationId));
+        alert("Hủy lịch thành công!");
+      } catch (error) {
+        alert(error.response?.data?.message || "Lỗi khi hủy lịch");
+      }
+    }
+  };
 
   if (loading) return <div>Loading...</div>;
 
@@ -179,6 +199,40 @@ const Dashboard = () => {
             )}
           </div>
         </div>
+
+        {/* User's Reserved Devices Section */}
+        {!isAdmin && reservations.length > 0 && (
+          <div className="card">
+            <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Clock size={20} color="var(--primary-color)"/> Thiết bị đã đặt trước
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {reservations.map((r, idx) => (
+                <div key={idx} style={{ padding: '0.75rem', backgroundColor: 'var(--bg-secondary)', borderRadius: '8px', borderLeft: '4px solid var(--primary-color)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                    <strong 
+                      style={{ cursor: 'pointer', color: 'var(--text-primary)', textDecoration: 'underline' }} 
+                      onClick={() => navigate(`/product/${r.productId?._id}`)}
+                    >
+                      {r.productId?.name}
+                    </strong>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); handleCancelReservation(r._id); }}
+                      style={{ fontSize: '0.75rem', padding: '0.35rem 0.6rem', backgroundColor: 'var(--danger)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }}
+                    >
+                      Hủy Mượn Ngay
+                    </button>
+                  </div>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                     Từ: <span style={{fontWeight: 500, color: 'var(--text-primary)'}}>{new Date(r.reservationDate).toLocaleString('vi-VN')}</span>
+                     <br/>
+                     Đến: <span style={{fontWeight: 500, color: 'var(--text-primary)'}}>{new Date(r.expectedReturnDate).toLocaleString('vi-VN')}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
       </div>
     </div>

@@ -105,6 +105,19 @@ const ProductDetail = () => {
      }
   };
 
+  const handleCancelReservation = async () => {
+    if (window.confirm("Bạn có chắc chắn muốn hủy lịch đặt thiết bị này?")) {
+      try {
+        await api.put(`/reservations/${activeReservation._id}/cancel`);
+        alert("Hủy lịch thành công!");
+        setActiveReservation(null);
+        fetchProductAndData();
+      } catch (error) {
+        alert(error.response?.data?.message || "Lỗi khi hủy lịch");
+      }
+    }
+  };
+
   if (loading) return <div>Đang tải dữ liệu...</div>;
   if (!product) return <div>Không tìm thấy thiết bị</div>;
 
@@ -246,7 +259,27 @@ const ProductDetail = () => {
                         Đến: {new Date(activeReservation.expectedReturnDate).toLocaleString('vi-VN')}
                       </p>
                       {activeReservation.userId?._id === user._id && (
-                        <p style={{ marginTop: '0.5rem', color: 'var(--success)', fontWeight: 600 }}>Tài khoản của bạn đang sở hữu lịch đặt này.</p>
+                        <div style={{ marginTop: '0.75rem'}}>
+                          <p style={{ color: 'var(--success)', fontWeight: 600, marginBottom: '0.5rem' }}>Tài khoản của bạn đang sở hữu lịch đặt này.</p>
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button className="btn btn-outline" onClick={handleCancelReservation} style={{ flex: 1, padding: '0.5rem', color: 'var(--danger)', borderColor: 'var(--danger)', fontSize: '0.9rem' }}>
+                              ❌ Hủy Mượn
+                            </button>
+                            {new Date() >= new Date(activeReservation.reservationDate) && product.status === 'available' && (
+                              <button className="btn" onClick={async () => {
+                                try {
+                                  await api.post('/transactions/borrow', { productId: product._id, returnDate: activeReservation.expectedReturnDate });
+                                  alert('Nhận máy thành công!');
+                                  navigate('/dashboard');
+                                } catch (error) {
+                                  alert(error.response?.data?.message || 'Lỗi khi nhận máy');
+                                }
+                              }} style={{ flex: 1, padding: '0.5rem', backgroundColor: 'var(--success)', color: 'white', fontSize: '0.9rem' }}>
+                                ✅ Nhận Mượn Ngay
+                              </button>
+                            )}
+                          </div>
+                        </div>
                       )}
                     </div>
                   ) : (
